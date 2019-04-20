@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- xmlns="http://logging.apache.org/log4j/2.0/config"-->
+<Configuration>
+    <!-- Секция аппендеров -->
+    <Appenders>
+        <File name="FILE" fileName="logs/logfile.log" append= "true">
+            <MarkerFilter marker="fileonly" onMatch="DENY" onMismatch="ACCEPT"/>
+            <PatternLayout>
+                <Pattern>"%-5p %d{yyyy-MM-dd HH:mm:ss} [%t] %C (%F:%L) - %m"%n</Pattern>
+            </PatternLayout>
+        </File>
+    </Appenders>
+    <!-- Секция логгеров -->
+    <Loggers>
+        <!-- Корневой логгер -->
+        <Root level="TRACE">
+            <AppenderRef ref="FILE"/>
+        </Root>
+        <!-- Логгер нашего класса
+        <Logger name="com.adarkhovskiy.courseProject" level="info">
+            <AppenderRef ref="file2" level="INFO"/>
+        </Logger>
+        -->
+    </Loggers>
+</Configuration>
