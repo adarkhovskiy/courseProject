@@ -17,10 +17,9 @@ public class TestClass {
 
     @Test
     public void testWriteAndRead() {
-        Date d1 = Date.valueOf("2016-01-01");
         String fileName = "testIn.csv";
-        Employee emp = new Employee(98, "Name", "Position", d1, 6543.21, "Some text");
-        Employee emp2 = new Employee(99, "Name2", "Position2", d1, 4443.21, "Some text2");
+        Employee emp = new Employee(98, "Name", "Position", Date.valueOf("2016-01-01"), 6543.21, "Some text");
+        Employee emp2 = new Employee(99, "Name2", "Position2", Date.valueOf("2016-01-01"), 4443.21, "Some text2");
         List<Employee> empList = new ArrayList<>();
         empList.add(emp);
         empList.add(emp2);
@@ -33,11 +32,10 @@ public class TestClass {
     @Test
     public void fullTest() {
         DBRequest.deleteTable("");
-        Date d1 = Date.valueOf("2016-01-01");
         String fileName = "testIn.csv";
-        String fileName2 = "testIn2.csv";
-        Employee emp = new Employee(98, "Name", "Position", d1, 6543.21, "Some text");
-        Employee emp2 = new Employee(99, "Name2", "Position2", d1, 4443.21, "Some text2");
+        String fileName2 = "testOut.csv";
+        Employee emp = new Employee(98, "Name", "Position", Date.valueOf("2016-01-01"), 6543.21, "Some text");
+        Employee emp2 = new Employee(99, "Name2", "Position2", Date.valueOf("2016-01-01"), 4443.21, "Some text2");
         AdditionalInfo addInfoEmp1 = new AdditionalInfo(98, "88005553535", "Some Info employee 1");
         AdditionalInfo addInfoEmp2 = new AdditionalInfo(99, "88002222222", "Some Info employee 2");
         List<Employee> empList = new ArrayList<>();
