@@ -1,4 +1,5 @@
 package com.adarkhovskiy.courseProject;
+
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -6,7 +7,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.sql.SQLException;
 
 public class CourseProject {
     static final String defaultImportFileName = "import.csv";   //  Имя файла импорта по умолчанию
@@ -16,7 +16,11 @@ public class CourseProject {
     private static final Logger logger = LogManager.getLogger(CourseProject.class.getName());
 
     public static void main(String[] args) {
-        DBRequest.dbConnect();
+        if (!DBRequest.dbConnect()) {
+            System.out.println("Программа будет завершена.");
+            return;
+        }
+        System.out.println("Соединение с базой данных установлено. Для вывода описания доступных функций введите /help .");
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String input;
         String fileName;
@@ -52,28 +56,36 @@ public class CourseProject {
                     DBRequest.getAverageSalary();
                 }
                 if (input.contains("/getAvgSalaryByPos")) {
-                    DBRequest.getAverageSalaryByPosition(input.substring(input.lastIndexOf(" ") + 1));
+                    if (input.equals("/getAvgSalaryByPos"))
+                        System.out.println("Укажите должность.");
+                    else
+                        DBRequest.getAverageSalaryByPosition(input.substring(input.lastIndexOf(" ") + 1));
                 }
                 if (input.contains("/findEmpByPhone")) {
-                    DBRequest.findEmployeeByPhone(input.substring(input.lastIndexOf(" ") + 1));
+                    if (input.equals("/findEmpByPhone"))
+                        System.out.println("Укажите номер телефона.");
+                    else
+                        DBRequest.findEmployeeByPhone(input.substring(input.lastIndexOf(" ") + 1));
                 }
                 if (input.contains("/deleteTable")) {
-                    DBRequest.deleteTable(input.substring(input.lastIndexOf(" ") + 1));
+                    String tableName = "";
+                    if (!input.equals("/deleteTable"))
+                        tableName = input.substring(input.lastIndexOf(" ") + 1);
+                    DBRequest.deleteTable(tableName);
                 }
                 if (input.contains("/help")) {
                     System.out.println("Вы можете ввести одну из комманд: " +
-                            "\n /exportAll <имя файла> - выгрузка всех данных из БД в указанный файл. При передаче пустого имени файла данные будут записаны в файл по умолчанию;" +
-                            "\n /importAll <имя файла> - загрузка всех данных из файла в БД. При передаче пустого имени файла данные будут записаны в файл по умолчанию;" +
+                            "\n /exportAll <имя файла> - выгрузка всех данных из БД в указанный файл. При вызове без имени файла данные будут записаны в файл по умолчанию;" +
+                            "\n /importAll <имя файла> - загрузка всех данных из файла в БД. При вызове без имени файла данные будут считаны из файла по умолчанию;" +
                             "\n /addEmployee <имя сотрудника, должность, зарплата, доп. информация> - загрузка всех данных из файла в БД;" +
                             "\n /getAllAvgSalary - вывод в консоль средней зарплаты всех сотрудников;" +
                             "\n /getAvgSalaryByPos <должность> - вывод в консоль средней зарплаты по указанной должности;" +
                             "\n /findEmpByPhone <номер телефона> - вывод в консоль средней зарплаты по указанной должности;" +
-                            "\n /deleteTable <имя таблицы> - удаление таблицы по имени. При передаче пустого имени удалит таблицы задания;" +
+                            "\n /deleteTable <имя таблицы> - удаление таблицы по имени. При вызове без имени таблицы удалит обе таблицы задания;" +
                             "\n /help - вывод в консоль списка команд;" +
                             "\n /exit - завершение работы.");
                 }
                 if (input.equals("/exit")) {
-                    System.out.println("Goodbye!");
                     DBRequest.dbDisconnect();
                     break;
                 }
@@ -86,7 +98,7 @@ public class CourseProject {
     }
 
     public static String fileNameFormat(String fileName) {
-        fileName = fileName.substring(fileName.lastIndexOf(" ")+1);   //
+        fileName = fileName.substring(fileName.lastIndexOf(" ") + 1);   //
         fileName = fileName.replaceAll("\\s+$", "");   //  Удаляем пробелы из конца строки
         if (!fileName.contains(".txt") && !fileName.contains(".csv")) {   //  Если в имени файла не указано подходящее расширение
             if (fileName.contains("."))  //  или указано некорректное расширение

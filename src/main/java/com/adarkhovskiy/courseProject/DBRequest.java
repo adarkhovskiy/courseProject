@@ -1,5 +1,6 @@
 package com.adarkhovskiy.courseProject;
 
+import com.mysql.cj.jdbc.exceptions.CommunicationsException;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,40 +24,54 @@ public class DBRequest {
 
     private static final Logger logger = LogManager.getLogger(CourseProject.class.getName());
 
-    public static void dbConnect() {
+    public static boolean dbConnect() {
         try {
-            logger.log(Level.INFO, ("Connection to server " + url + " as " + user + "..."));
+            logger.log(Level.INFO, ("Try to connection to server " + url + " as " + user + "..."));
             con = DriverManager.getConnection(url, user, password);
+            con.isValid(5000);
             stmt = con.createStatement();
             logger.log(Level.INFO, ("Connection done. Checking database and tables..."));
+        } catch (CommunicationsException e) {
+            System.out.println("Не удается подключиться к базе данных. Проверьте, что сервер базы данных запущен.");
+            logger.log(Level.ERROR, (e));
+            return false;
+        } catch (SQLNonTransientConnectionException e) {
+            System.out.println("Не удается подключиться к базе данных. Проверьте данные подключения.");
+            logger.log(Level.ERROR, (e));
+            return false;
         } catch (SQLException e) {
             logger.log(Level.ERROR, (e));
+            return false;
         }
         if (dbInit()) {
             logger.log(Level.INFO, ("DB and tables are ok."));
         }
-
+        return true;
     }
 
-    public static void dbDisconnect() {
-        logger.log(Level.INFO, ("Close connection..."));
+    public static boolean dbDisconnect() {
+        logger.log(Level.INFO, ("Try to close connection..."));
         try {
             stmt.close();
         } catch (SQLException e) {
             logger.log(Level.ERROR, (e));
+            return false;
         }
 
         try {
             rs.close();
         } catch (SQLException e) {
             logger.log(Level.ERROR, (e));
+            return false;
         }
         try {
             con.close();
         } catch (SQLException e) {
             logger.log(Level.ERROR, (e));
+            return false;
         }
         logger.log(Level.INFO, ("Connection closed."));
+        return true;
     }
 
     public static boolean dbInit() {    //  Инициализации базы данных
@@ -121,7 +136,6 @@ public class DBRequest {
         List<AdditionalInfo> additionalInfoList = new ArrayList<>();
         List[] result = new List[2];
         try {
-
             Connection con = DriverManager.getConnection(url, user, password);
             Statement stmt = con.createStatement();
             String query = "SELECT * FROM `" + dbName + "`.`" + employeesTable + "`;";
@@ -135,8 +149,8 @@ public class DBRequest {
                             rs.getDouble(5),    //  Зарплата
                             rs.getString(6)));  //  Доп инфо
                 }
-            } catch (SQLException sqlEx) {
-                sqlEx.printStackTrace();
+            } catch (SQLException e) {
+                logger.log(Level.ERROR, (e));
             }
             result[0] = employeesList;
             query = "SELECT * FROM `" + dbName + "`.`" + additionalInfoTable + "`;";
@@ -146,12 +160,17 @@ public class DBRequest {
                     additionalInfoList.add(new AdditionalInfo(rs.getInt(1),
                             rs.getString(2),
                             rs.getString(3)));
-            } catch (SQLException sqlEx) {
-                sqlEx.printStackTrace();
+            } catch (SQLException e) {
+                logger.log(Level.ERROR, (e));
             }
             result[1] = additionalInfoList;
+            if (result[0].equals(new ArrayList()) && result[1].equals(new ArrayList())) {
+                System.out.println("В таблицах " + employeesTable + " и " + additionalInfoTable + "не найдено записей.");
+                return null;
+            }
             return (result); //  Возвращаем массив списков - список работников и список доп информации
         } catch (SQLException e) {
+            System.out.println("При выполнении запроса возникла ошибка.");
             logger.log(Level.ERROR, (e));
             return null;
         }
@@ -184,11 +203,13 @@ public class DBRequest {
                     stmt.executeUpdate(query);
                 }
             }
+            System.out.println("Записи успешно добавлены.");
             return true;
         } catch (SQLIntegrityConstraintViolationException e) {
             System.out.println("Запись с таким ID уже существует.");
             return false;
         } catch (SQLException e) {
+            System.out.println("При выполнении добавления сотрудников из файла возникла ошибка.");
             logger.log(Level.ERROR, (e));
             return false;
         }
@@ -199,7 +220,7 @@ public class DBRequest {
         if (!FilesIO.employeeDataValidate(employeeData))
             return false;
         if (employeeData.length != 5) { //  Проверяем наличие всех параметров
-            System.out.println("Неверное количество параметров (должно быть 5.");
+            System.out.println("Неверное количество параметров (должно быть 4 - имя, должность, зарплата, доп. информация).");
             return false;
         }
         try {
@@ -211,11 +232,13 @@ public class DBRequest {
                     "\'" + employeeData[3] + "\', " +   //  Зарплата
                     "\'" + employeeData[4] + "\');";    //  Доп инфо
             stmt.executeUpdate(query);
+            System.out.println("Сотрудник " + employeeData[0] + " успешно добавлен.");
             return true;
         } catch (SQLIntegrityConstraintViolationException e) {  //  Ошибка нарушения уникальности - Primary Key
             System.out.println("Запись с таким ID уже существует.");
             return false;
         } catch (SQLException e) {
+            System.out.println("При выполнении запроса возникла ошибка.");
             logger.log(Level.ERROR, (e));
             return false;
         }
@@ -226,9 +249,10 @@ public class DBRequest {
         try {
             rs = stmt.executeQuery(query);
             while (rs.next()) {
-                System.out.println(rs.getDouble(1));
+                System.out.println("Средняя зарплата всех сотрудников: " + rs.getDouble(1));
             }
         } catch (SQLException e) {
+            System.out.println("При выполнении запроса возникла ошибка.");
             logger.log(Level.ERROR, (e));
         }
     }
@@ -239,9 +263,10 @@ public class DBRequest {
         try {
             rs = stmt.executeQuery(query);
             while (rs.next()) {
-                System.out.println(rs.getDouble(1));
+                System.out.println("Средняя зарплата сотрудников на должности " + position + ": " + rs.getDouble(1));
             }
         } catch (SQLException e) {
+            System.out.println("При выполнении запроса возникла ошибка.");
             logger.log(Level.ERROR, (e));
         }
     }
@@ -271,28 +296,32 @@ public class DBRequest {
                 while (rs.next())
                     tables.add(rs.getString(1));    //  И запоминаем их
                 if (!tables.contains(tableName)) {
-                    System.out.println("Указанная таблица отсутствует в БД.");
+                    System.out.println("Таблица '" + tableName + "' отсутствует в БД.");
                     return false;
                 }
                 query = "DELETE FROM `" + dbName + "`.`" + tableName + "`;";
                 stmt.executeUpdate(query);
+                System.out.println("Таблица '" + tableName + "' успешно удалена.");
                 return true;
             } catch (SQLException e) {
+                System.out.println("При удалении таблицы  '" + tableName + "' возникла ошибка.");
                 logger.log(Level.ERROR, (e));
+                return false;
             }
 
         } else {
             try {
-                String query = "DELETE FROM `" + dbName + "`.`" + employeesTable + "`;";
+                String query = "DELETE FROM `" + dbName + "`.`" + additionalInfoTable + "`;";
                 stmt.executeUpdate(query);
-                query = "DELETE FROM `" + dbName + "`.`" + additionalInfoTable + "`;";
+                query = "DELETE FROM `" + dbName + "`.`" + employeesTable + "`;";
                 stmt.executeUpdate(query);
+                System.out.println("Таблицы '" + employeesTable + "' и '" + additionalInfoTable + "' успешно удалены.");
                 return true;
             } catch (SQLException e) {
+                System.out.println("При удалении таблиц '" + employeesTable + "' и '" + additionalInfoTable + "' возникла ошибка.");
                 logger.log(Level.ERROR, (e));
                 return false;
             }
         }
-        return false;
     }
 }

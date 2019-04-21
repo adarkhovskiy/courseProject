@@ -38,5 +38,21 @@ public class AdditionalInfo {
         this.address = address;
     }
 
-
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+        if (obj == null)
+            return false;
+        if (!(getClass() == obj.getClass()))
+            return false;
+        else {
+            AdditionalInfo tmp = (AdditionalInfo) obj;
+            if (tmp.getAdditionalInfoId() == this.getAdditionalInfoId() && tmp.getPhoneNumber().equals(this.getPhoneNumber())
+                    && tmp.getAddress().equals(this.getAddress()))
+                return true;
+            else
+                return false;
+        }
+    }
 }

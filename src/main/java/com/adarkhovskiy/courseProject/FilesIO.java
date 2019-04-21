@@ -63,16 +63,21 @@ public class FilesIO {
             result[1] = additionalInfoList;
             bi.close(); //  Закрываем поток чтения
             return (new List[]{employeesList, additionalInfoList});    //  Возвращаем результат работы метода добавления всех данных в БД
-        } catch (IOException e) {
+        } catch (FileNotFoundException e) {
+            System.out.println("Файл " + fileName + " не найден.");
+            logger.log(Level.ERROR, (e));
+            return null;
+        }catch (IOException e) {
+            System.out.println("При чтении из файла " + fileName + " возникла ошибка.");
             logger.log(Level.ERROR, (e));
             return null;
         }
     }
 
     public static boolean writeFile(String fileName, List[] dataArray) {  //  Запись файла для экспорта из БД
-
-        if (dataArray == null)   //  Если из БД ничего не было считано, сразу возвращаем false
+        if (dataArray == null)  //  Если из БД ничего не было считано, сразу возвращаем false
             return false;
+
         List<Employee> employeesList = new ArrayList<>(dataArray[0]);    //  Список сотрудников
         try {
             if (!(new File(fileName).exists())) //  Создаем файл если его еще нет
@@ -106,6 +111,7 @@ public class FilesIO {
             bw.close(); //  Закрываем поток записи
             return true;
         } catch (IOException e) {
+            System.out.println("При записи в файл " + fileName + " возникла ошибка.");
             logger.log(Level.ERROR, (e));
             return false;
         }
@@ -113,14 +119,18 @@ public class FilesIO {
 
     public static boolean employeeDataValidate(String[] s) {
         try {
-            if(Integer.valueOf(s[0]) < 0 || s[1].length() == 0|| Double.valueOf(s[4]) < 0)
+            if (Integer.valueOf(s[0]) < 0 || s[1].length() == 0 || Double.valueOf(s[4]) < 0)
                 return false;
             s[2].toString();
-            new SimpleDateFormat("yyyy-MM-dd").parse(s[3]);
             s[5].toString();
+            if(Date.valueOf(s[3]).after(new Date(new java.util.Date().getTime()))) {
+                System.out.println("Дата рождения сотрудника не может быть больше текущей.");
+                return false;
+            }
             return true;
-        } catch (NumberFormatException | DateTimeParseException | ParseException e) {
+        } catch (NumberFormatException | DateTimeParseException e) {
             System.out.println("Ошибка в данных сотрудника");
+            logger.log(Level.ERROR, (e));
             return false;
         }
     }
