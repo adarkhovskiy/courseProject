@@ -22,62 +22,62 @@ public class DBRequest {
     private static Statement stmt;
     private static ResultSet rs;
 
-    private static final Logger logger = LogManager.getLogger(CourseProject.class.getName());
+    private static final Logger DBRequstLogger = LogManager.getLogger(CourseProject.class.getName());
 
     public static boolean dbConnect() {
         try {
-            logger.log(Level.INFO, ("Try to connection to server " + url + " as " + user + "..."));
+            DBRequstLogger.log(Level.INFO, ("Try to connection to server " + url + " as " + user + "..."));
             con = DriverManager.getConnection(url, user, password);
             con.isValid(5000);
             stmt = con.createStatement();
-            logger.log(Level.INFO, ("Connection done. Checking database and tables..."));
+            DBRequstLogger.log(Level.INFO, ("Connection done. Checking database and tables..."));
         } catch (CommunicationsException e) {
             System.out.println("Не удается подключиться к базе данных. Проверьте, что сервер базы данных запущен.");
-            logger.log(Level.ERROR, (e));
+            DBRequstLogger.log(Level.ERROR, (e));
             return false;
         } catch (SQLNonTransientConnectionException e) {
             System.out.println("Не удается подключиться к базе данных. Проверьте данные подключения.");
-            logger.log(Level.ERROR, (e));
+            DBRequstLogger.log(Level.ERROR, (e));
             return false;
         } catch (SQLException e) {
-            logger.log(Level.ERROR, (e));
+            DBRequstLogger.log(Level.ERROR, (e));
             return false;
         }
         if (dbInit()) {
-            logger.log(Level.INFO, ("DB and tables are ok."));
+            DBRequstLogger.log(Level.INFO, ("DB and tables are ok."));
         }
         return true;
     }
 
     public static boolean dbDisconnect() {
-        logger.log(Level.INFO, ("Try to close connection..."));
+        DBRequstLogger.log(Level.INFO, ("Try to close connection..."));
         try {
             stmt.close();
         } catch (SQLException e) {
-            logger.log(Level.ERROR, (e));
+            DBRequstLogger.log(Level.ERROR, (e));
             return false;
         }
 
         try {
             rs.close();
         } catch (SQLException e) {
-            logger.log(Level.ERROR, (e));
+            DBRequstLogger.log(Level.ERROR, (e));
             return false;
         }
         try {
             con.close();
         } catch (SQLException e) {
-            logger.log(Level.ERROR, (e));
+            DBRequstLogger.log(Level.ERROR, (e));
             return false;
         }
-        logger.log(Level.INFO, ("Connection closed."));
+        DBRequstLogger.log(Level.INFO, ("Connection closed."));
         return true;
     }
 
     public static boolean dbInit() {    //  Инициализации базы данных
         ArrayList<String> databases = new ArrayList();  //  Список БД
         ArrayList<String> tables = new ArrayList(); //  Список таблиц БД
-        logger.log(Level.INFO, ("Checking databases..."));
+        DBRequstLogger.log(Level.INFO, ("Checking databases..."));
         try {
             String query = "SHOW DATABASES;";   //  Сотрим существубщие БД
             rs = stmt.executeQuery(query);
@@ -85,10 +85,10 @@ public class DBRequest {
                 while (rs.next())
                     databases.add(rs.getString(1)); //  Запоминаем существующие БД
             } catch (SQLException e) {
-                logger.log(Level.ERROR, (e));
+                DBRequstLogger.log(Level.ERROR, (e));
             }
             if (!databases.contains(dbName)) {  //  Если нужной нам не существует
-                logger.log(Level.INFO, ("Database " + dbName + " is not exist. Creating database..."));
+                DBRequstLogger.log(Level.INFO, ("Database " + dbName + " is not exist. Creating database..."));
                 query = "CREATE DATABASE `" + dbName + "`;";    //  Создаем ее
                 stmt.execute(query);
             }
@@ -100,10 +100,10 @@ public class DBRequest {
                 while (rs.next())
                     tables.add(rs.getString(1));    //  И запоминаем их
             } catch (SQLException e) {
-                logger.log(Level.ERROR, (e));
+                DBRequstLogger.log(Level.ERROR, (e));
             }
             if (!tables.contains(employeesTable)) { //  Если нет таблицы сотрудников - создаем ее
-                logger.log(Level.INFO, ("Table " + employeesTable + " is not exists. Creating.."));
+                DBRequstLogger.log(Level.INFO, ("Table " + employeesTable + " is not exists. Creating.."));
                 System.out.println("Creating table " + employeesTable + "...");
                 query = "CREATE TABLE `" + employeesTable + "` (employee_id INT(10) AUTO_INCREMENT NOT NULL, " +
                         "name VARCHAR(30) NOT NULL, " +
@@ -116,7 +116,7 @@ public class DBRequest {
             }
 
             if (!tables.contains(additionalInfoTable)) {    //  Если нет таблицы доп информации о сотрудниках - создаем ее
-                logger.log(Level.INFO, ("Table " + additionalInfoTable + " is not exists. Creating..."));
+                DBRequstLogger.log(Level.INFO, ("Table " + additionalInfoTable + " is not exists. Creating..."));
                 query = "CREATE TABLE `" + additionalInfoTable + "` (additional_info_id INT(10) NOT NULL, " +
                         "phone VARCHAR(12) NOT NULL, " +
                         "address VARCHAR(100) NOT NULL, " +
@@ -126,7 +126,7 @@ public class DBRequest {
             }
             return true;    //  Все создано и готово
         } catch (SQLException e) {
-            logger.log(Level.ERROR, (e));
+            DBRequstLogger.log(Level.ERROR, (e));
             return false;
         }
     }
@@ -150,7 +150,7 @@ public class DBRequest {
                             rs.getString(6)));  //  Доп инфо
                 }
             } catch (SQLException e) {
-                logger.log(Level.ERROR, (e));
+                DBRequstLogger.log(Level.ERROR, (e));
             }
             result[0] = employeesList;
             query = "SELECT * FROM `" + dbName + "`.`" + additionalInfoTable + "`;";
@@ -161,7 +161,7 @@ public class DBRequest {
                             rs.getString(2),
                             rs.getString(3)));
             } catch (SQLException e) {
-                logger.log(Level.ERROR, (e));
+                DBRequstLogger.log(Level.ERROR, (e));
             }
             result[1] = additionalInfoList;
             if (result[0].equals(new ArrayList()) && result[1].equals(new ArrayList())) {
@@ -171,118 +171,120 @@ public class DBRequest {
             return (result); //  Возвращаем массив списков - список работников и список доп информации
         } catch (SQLException e) {
             System.out.println("При выполнении запроса возникла ошибка.");
-            logger.log(Level.ERROR, (e));
+            DBRequstLogger.log(Level.ERROR, (e));
             return null;
         }
     }
 
-    public static boolean insertAll(List[] list) {  //  Импорт. Добавление всех объектов из списков
-        if (list == null)    //  Если список пустой
-            return false;
+    public static boolean insertEmployee(Employee emp) { //  Добавление сотрудника
         try {
-            if (list[0] != null) {
-                List<Employee> employeesList = new ArrayList<>(list[0]);
-                for (Employee employee : employeesList) {   //  Если в спике только сотурдники
-                    String query = "INSERT INTO `" + dbName + "`.`" + employeesTable + "` VALUES (" +
-                            "\'" + employee.getId() + "\', " +
-                            "\'" + employee.getName() + "\', " +
-                            "\'" + employee.getPosition() + "\', " +
-                            "\'" + dateFormat.format(employee.getDateOfBirth()) + "\', " +
-                            "\'" + employee.getSalary() + "\', " +
-                            "\'" + employee.getAdditionalInfo() + "\');";
-                    stmt.executeUpdate(query);
-                }
+            StringBuilder query = new StringBuilder();
+            if (emp.getId() != 0) {    //  Если ID передается
+                query.append("INSERT INTO `").append(dbName).append("`.`").append(employeesTable)
+                        .append("` (`employee_id`, `name`, `position`, `date_of_birth`, `salary`, `additional_info`) VALUES (\'")   //  Указываем в insert поле id
+                        .append(emp.getId()).append("\', ");    //  и добавляем ID сотрудника
+            } else {
+                query.append("INSERT INTO `").append(dbName).append("`.`").append(employeesTable)
+                        .append("` (`name`, `position`, `date_of_birth`, `salary`, `additional_info`) VALUES (");
             }
-            if (list[1] != null) {  //  Если в списке и сотрудники и доп информация
-                List<AdditionalInfo> additionalInfoList = new ArrayList<>(list[1]);
-                for (AdditionalInfo additionalInfo : additionalInfoList) {
-                    String query = "INSERT INTO `" + dbName + "`.`" + additionalInfoTable + "` VALUES (" +
-                            "\'" + additionalInfo.getAdditionalInfoId() + "\', " +
-                            "\'" + additionalInfo.getPhoneNumber() + "\', " +
-                            "\'" + additionalInfo.getAddress() + "\');";
-                    stmt.executeUpdate(query);
-                }
-            }
-            System.out.println("Записи успешно добавлены.");
+            query.append("\'").append(emp.getName()).append("\', ") //  Имя
+                    .append("\'").append(emp.getPosition()).append("\', ")  //  Должность
+                    .append("\'").append(dateFormat.format(emp.getDateOfBirth())).append("\', ")    //  Дата рождения
+                    .append("\'").append(emp.getSalary()).append("\', ")    //  Зарплата
+                    .append("\'").append(emp.getAdditionalInfo()).append("\');");    //  Доп инфо
+            stmt.executeUpdate(query.toString());
+            System.out.println("Сотрудник " + emp.getName() + " успешно добавлен.");
             return true;
-        } catch (SQLIntegrityConstraintViolationException e) {
-            System.out.println("Запись с таким ID уже существует.");
+        } catch (SQLIntegrityConstraintViolationException e) {  //  Ошибка нарушения уникальности - Primary Key
+            System.out.println("Запись с ID " + emp.getId() + " уже существует.");
             return false;
         } catch (SQLException e) {
-            System.out.println("При выполнении добавления сотрудников из файла возникла ошибка.");
-            logger.log(Level.ERROR, (e));
+            System.out.println("При выполнении запроса возникла ошибка.");
+            DBRequstLogger.log(Level.ERROR, (e));
             return false;
         }
     }
 
-    public static boolean insertEmployee(String data) { //  Добавление сотрудника
-        String[] employeeData = data.split(", ");
-        if (!FilesIO.employeeDataValidate(employeeData))
-            return false;
-        if (employeeData.length != 5) { //  Проверяем наличие всех параметров
-            System.out.println("Неверное количество параметров (должно быть 4 - имя, должность, зарплата, доп. информация).");
-            return false;
-        }
+    public static boolean insertAddInfo(AdditionalInfo additionalInfo) { //  Добавление сотрудника
         try {
-            String query = "INSERT INTO `" + dbName + "`.`" + employeesTable + "` (`name`, `position`, `date_of_birth`, `salary`, `additional_info`)" +
-                    "VALUES (" +
-                    "\'" + employeeData[0] + "\', " +   //  Имя
-                    "\'" + employeeData[1] + "\', " +   //  Должность
-                    "\'" + employeeData[2] + "\', " +   //  Дата рождения
-                    "\'" + employeeData[3] + "\', " +   //  Зарплата
-                    "\'" + employeeData[4] + "\');";    //  Доп инфо
+            String query = "INSERT INTO `" + dbName + "`.`" + additionalInfoTable + "` VALUES (" +
+                    "\'" + additionalInfo.getAdditionalInfoId() + "\', " +
+                    "\'" + additionalInfo.getPhoneNumber() + "\', " +
+                    "\'" + additionalInfo.getAddress() + "\');";
             stmt.executeUpdate(query);
-            System.out.println("Сотрудник " + employeeData[0] + " успешно добавлен.");
             return true;
         } catch (SQLIntegrityConstraintViolationException e) {  //  Ошибка нарушения уникальности - Primary Key
             System.out.println("Запись с таким ID уже существует.");
             return false;
         } catch (SQLException e) {
             System.out.println("При выполнении запроса возникла ошибка.");
-            logger.log(Level.ERROR, (e));
+            DBRequstLogger.log(Level.ERROR, (e));
             return false;
         }
     }
 
-    public static void getAverageSalary() { //  Вычисление средней зарплаты всех сотрудников
+    public static boolean insertAll(List[] list) {  //  Импорт. Добавление всех объектов из списков
+        if (list == null)    //  Если список пустой
+            return false;
+        if (list[0] != null) {
+            List<Employee> employeesList = new ArrayList<>(list[0]);
+            for (Employee employee : employeesList) {
+                insertEmployee(employee);
+            }
+        }
+        if (list[1] != null) {  //  Если в списке и сотрудники и доп информация
+            List<AdditionalInfo> additionalInfoList = new ArrayList<>(list[1]);
+            for (AdditionalInfo additionalInfo : additionalInfoList) {
+                insertAddInfo(additionalInfo);
+            }
+        }
+        return true;
+
+    }
+
+    public static double getAverageSalary() { //  Вычисление средней зарплаты всех сотрудников
         String query = "SELECT AVG(salary) FROM `" + dbName + "`.`" + employeesTable + "`;";
         try {
             rs = stmt.executeQuery(query);
             while (rs.next()) {
-                System.out.println("Средняя зарплата всех сотрудников: " + rs.getDouble(1));
+                return rs.getDouble(1);
             }
         } catch (SQLException e) {
             System.out.println("При выполнении запроса возникла ошибка.");
-            logger.log(Level.ERROR, (e));
+            DBRequstLogger.log(Level.ERROR, (e));
         }
+        return 0.0;
     }
 
-    public static void getAverageSalaryByPosition(String position) {    //  Вычисление средней зарплаты сотрудников одной должности
+    public static double getAverageSalaryByPosition(String position) {    //  Вычисление средней зарплаты сотрудников одной должности
         String query = "SELECT AVG(salary) FROM `" + dbName + "`.`" + employeesTable + "` WHERE position = '" + position + "';";
-        System.out.println(query);
         try {
             rs = stmt.executeQuery(query);
             while (rs.next()) {
-                System.out.println("Средняя зарплата сотрудников на должности " + position + ": " + rs.getDouble(1));
+                return rs.getDouble(1);
             }
         } catch (SQLException e) {
             System.out.println("При выполнении запроса возникла ошибка.");
-            logger.log(Level.ERROR, (e));
+            DBRequstLogger.log(Level.ERROR, (e));
         }
+        return 0.0;
     }
 
-    public static void findEmployeeByPhone(String phone) {  //  Поиск сотрудника по номеру телефона - возвращаем ID и имя
+    public static List findEmployeeByPhone(String phone) {  //  Поиск сотрудника по номеру телефона - возвращаем ID и имя
         String query = "SELECT * FROM `" + dbName + "`.`" + employeesTable + "` WHERE employee_id in (" +
                 "SELECT additional_info_id FROM `" + dbName + "`.`" + additionalInfoTable + "` WHERE phone = '" + phone + "');";
         try {
             rs = stmt.executeQuery(query);
-            System.out.println("По номеру телефона '" + phone + "' найдены следующие сотрудники: ");
+            List<String> result = new ArrayList<>();
             while (rs.next()) {
-                System.out.print(rs.getInt(1) + " " + rs.getString(2) + "\n");
+                result.add(rs.getString(1));
+                result.add(rs.getString(2));
             }
+            return result;
         } catch (SQLException e) {
-            logger.log(Level.ERROR, (e));
+            DBRequstLogger.log(Level.ERROR, (e));
         }
+        return null;
     }
 
 
@@ -305,7 +307,7 @@ public class DBRequest {
                 return true;
             } catch (SQLException e) {
                 System.out.println("При удалении таблицы  '" + tableName + "' возникла ошибка.");
-                logger.log(Level.ERROR, (e));
+                DBRequstLogger.log(Level.ERROR, (e));
                 return false;
             }
 
@@ -319,7 +321,7 @@ public class DBRequest {
                 return true;
             } catch (SQLException e) {
                 System.out.println("При удалении таблиц '" + employeesTable + "' и '" + additionalInfoTable + "' возникла ошибка.");
-                logger.log(Level.ERROR, (e));
+                DBRequstLogger.log(Level.ERROR, (e));
                 return false;
             }
         }

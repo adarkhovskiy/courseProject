@@ -1,6 +1,8 @@
 package com.adarkhovskiy.courseProject;
 
-public class AdditionalInfo {
+import java.io.Serializable;
+
+public class AdditionalInfo implements Serializable {
 
     private int additionalInfoId;
     private String phoneNumber;
@@ -12,6 +14,14 @@ public class AdditionalInfo {
         this.additionalInfoId = additionalInfoId;
         this.phoneNumber = phoneNumber;
         this.address = address;
+    }
+
+    public AdditionalInfo(String additionalData) {
+        additionalData.replaceAll("\\s+","");
+        String[] data = additionalData.split(",");
+        this.additionalInfoId = Integer.valueOf(data[0]);
+        this.phoneNumber = data[1];
+        this.address = data[2];
     }
 
     public int getAdditionalInfoId() {

@@ -7,13 +7,15 @@ import org.apache.logging.log4j.Logger;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.IllegalFormatException;
+import java.util.List;
 
 public class CourseProject {
     static final String defaultImportFileName = "import.csv";   //  Имя файла импорта по умолчанию
     static final String defaultExportFileName = "export.csv";   //  Имя файла экспорта по умолчанию
     static final String defaultExtension = ".csv";  //  Расширение по умолчанию
 
-    private static final Logger logger = LogManager.getLogger(CourseProject.class.getName());
+    private static final Logger courseProjectLogger = LogManager.getLogger(CourseProject.class.getName());
 
     public static void main(String[] args) {
         if (!DBRequest.dbConnect()) {
@@ -49,23 +51,37 @@ public class CourseProject {
                 }
 
                 if (input.contains("/addEmployee")) {
-                    if (DBRequest.insertEmployee(input.substring(input.indexOf(" ") + 1)))  //  Обрезаем по первому пробелу
-                        System.out.println("Сотрудник успешно добавлен.");
+                    try {
+                        if (DBRequest.insertEmployee(new Employee(input.substring(input.indexOf(" ") + 1))))  //  Обрезаем по первому пробелу
+                            System.out.println("Сотрудник успешно добавлен.");
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("Ошибка в данных сотрудника");
+                    } catch (NullPointerException e) {
+                        System.out.println("Неверное количество аргументов (должно быть 5 либо 6).");
+                    }
                 }
                 if (input.contains("/getAllAvgSalary")) {
-                    DBRequest.getAverageSalary();
+                    System.out.println("Средняя зарплата всех сотрудников: " + DBRequest.getAverageSalary());
                 }
                 if (input.contains("/getAvgSalaryByPos")) {
                     if (input.equals("/getAvgSalaryByPos"))
                         System.out.println("Укажите должность.");
-                    else
-                        DBRequest.getAverageSalaryByPosition(input.substring(input.lastIndexOf(" ") + 1));
+                    else {
+                        String position = input.substring(input.lastIndexOf(" ") + 1);
+                        System.out.println("Средняя зарплата сотрудников на должности " + position + ": " + DBRequest.getAverageSalaryByPosition(position));
+                    }
                 }
                 if (input.contains("/findEmpByPhone")) {
                     if (input.equals("/findEmpByPhone"))
                         System.out.println("Укажите номер телефона.");
-                    else
-                        DBRequest.findEmployeeByPhone(input.substring(input.lastIndexOf(" ") + 1));
+                    else {
+                        String phone = input.substring(input.lastIndexOf(" ") + 1);
+                        System.out.println("По номеру телефона '" + phone + "' найдены следующие сотрудники: ");
+                        List<String> result = DBRequest.findEmployeeByPhone(phone);
+                        for (int i = 0; i < result.size(); i+=2) {
+                            System.out.println(result.get(i) + " " + result.get(i+1));
+                        }
+                    }
                 }
                 if (input.contains("/deleteTable")) {
                     String tableName = "";
@@ -77,7 +93,7 @@ public class CourseProject {
                     System.out.println("Вы можете ввести одну из комманд: " +
                             "\n /exportAll <имя файла> - выгрузка всех данных из БД в указанный файл. При вызове без имени файла данные будут записаны в файл по умолчанию;" +
                             "\n /importAll <имя файла> - загрузка всех данных из файла в БД. При вызове без имени файла данные будут считаны из файла по умолчанию;" +
-                            "\n /addEmployee <имя сотрудника, должность, зарплата, доп. информация> - загрузка всех данных из файла в БД;" +
+                            "\n /addEmployee <id (опционально), имя сотрудника, должность, зарплата, доп. информация> - загрузка всех данных из файла в БД;" +
                             "\n /getAllAvgSalary - вывод в консоль средней зарплаты всех сотрудников;" +
                             "\n /getAvgSalaryByPos <должность> - вывод в консоль средней зарплаты по указанной должности;" +
                             "\n /findEmpByPhone <номер телефона> - вывод в консоль средней зарплаты по указанной должности;" +
@@ -91,7 +107,7 @@ public class CourseProject {
                 }
             }
         } catch (IOException e) {
-            logger.log(Level.ERROR, (e));
+            courseProjectLogger.log(Level.ERROR, (e));
         } finally {
             DBRequest.dbDisconnect();
         }

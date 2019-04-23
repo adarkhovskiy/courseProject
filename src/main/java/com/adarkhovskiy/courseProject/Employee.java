@@ -1,8 +1,12 @@
 package com.adarkhovskiy.courseProject;
 
-import java.sql.Date;
+import org.apache.logging.log4j.Level;
 
-public class Employee {
+import java.io.Serializable;
+import java.sql.Date;
+import java.time.format.DateTimeParseException;
+
+public class Employee implements Serializable {
     private int id;
     private String name;
     private String position;
@@ -20,6 +24,31 @@ public class Employee {
         this.dateOfBirth = dateOfBirth;
         this.salary = salary;
         this.additionalInfo = additionalInfo;
+    }
+
+    public Employee(String employeeData) throws NumberFormatException, DateTimeParseException, IllegalArgumentException, NullPointerException {
+        // Если из файла
+        employeeData.replaceAll("\\s+","");
+        String[] data = employeeData.split(",");
+        if (data.length < 5 || data.length < 6)
+            throw new NullPointerException();
+        if (data.length == 6) {
+            this.id = Integer.valueOf(data[0]);   //  И создаем объект типа Сотрудник с полями: ID
+            this.name = data[1];   //  Имя
+            this.position = data[2];   //  Должность
+            this.dateOfBirth = Date.valueOf(data[3]);  //  Дата рождения
+            this.salary = Double.valueOf(data[4]);   //  Зарплата
+            this.additionalInfo = data[5]; //  Доп инфо
+        }
+        // Если инсерт
+        if (data.length == 5) {
+            this.name = data[0];   //  Имя
+            this.position = data[1];   //  Должность
+            this.dateOfBirth = Date.valueOf(data[2]);  //  Дата рождения
+            this.salary = Double.valueOf(data[3]);   //  Зарплата
+            this.additionalInfo = data[4]; //  Доп инфо
+        }
+
     }
 
     public int getId() {
