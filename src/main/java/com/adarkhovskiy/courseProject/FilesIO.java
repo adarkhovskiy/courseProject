@@ -23,7 +23,6 @@ public class FilesIO {
             if ((line = bi.readLine()).equals("Employees")) //  Если строка равна ключевому слову Employees
                 line = bi.readLine();   //  Читаем следующую строку
             while (line != null && !line.equals("Additional Info")) {   //  И пока не кончится файл или не найдем следующее ключевое слово
-                System.out.println(line);
                 try {
                     employeesList.add(new Employee(line));
                 } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
@@ -118,5 +117,9 @@ public class FilesIO {
             filesIOLogger.log(Level.ERROR, (e));
             return false;
         }
+    }
+
+    public static boolean deleteFile(String fileName) {
+        return (new File(fileName).getAbsoluteFile().delete());
     }
 }

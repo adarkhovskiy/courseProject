@@ -18,7 +18,7 @@ public class DBRequest {
     private static final String employeesTable = "employees";
     private static final String additionalInfoTable = "additional_info";
     static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    private static Connection con;
+    public static Connection con;
     private static Statement stmt;
     private static ResultSet rs;
 
@@ -52,14 +52,13 @@ public class DBRequest {
     public static boolean dbDisconnect() {
         DBRequstLogger.log(Level.INFO, ("Try to close connection..."));
         try {
-            stmt.close();
+            rs.close();
         } catch (SQLException e) {
             DBRequstLogger.log(Level.ERROR, (e));
             return false;
         }
-
         try {
-            rs.close();
+            stmt.close();
         } catch (SQLException e) {
             DBRequstLogger.log(Level.ERROR, (e));
             return false;
@@ -289,7 +288,7 @@ public class DBRequest {
 
 
     /*------------------------*/
-    public static boolean deleteTable(String tableName) {
+    public static boolean deleteFromTable(String tableName) {
         if (!tableName.equals("")) {
             ArrayList<String> tables = new ArrayList(); //  Список таблиц БД
             try {
@@ -303,10 +302,10 @@ public class DBRequest {
                 }
                 query = "DELETE FROM `" + dbName + "`.`" + tableName + "`;";
                 stmt.executeUpdate(query);
-                System.out.println("Таблица '" + tableName + "' успешно удалена.");
+                System.out.println("Данные из таблицы '" + tableName + "' успешно удалены.");
                 return true;
             } catch (SQLException e) {
-                System.out.println("При удалении таблицы  '" + tableName + "' возникла ошибка.");
+                System.out.println("При удалении данных из таблицы  '" + tableName + "' возникла ошибка.");
                 DBRequstLogger.log(Level.ERROR, (e));
                 return false;
             }

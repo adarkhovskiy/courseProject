@@ -87,7 +87,7 @@ public class CourseProject {
                     String tableName = "";
                     if (!input.equals("/deleteTable"))
                         tableName = input.substring(input.lastIndexOf(" ") + 1);
-                    DBRequest.deleteTable(tableName);
+                    DBRequest.deleteFromTable(tableName);
                 }
                 if (input.contains("/help")) {
                     System.out.println("Вы можете ввести одну из комманд: " +
@@ -97,7 +97,7 @@ public class CourseProject {
                             "\n /getAllAvgSalary - вывод в консоль средней зарплаты всех сотрудников;" +
                             "\n /getAvgSalaryByPos <должность> - вывод в консоль средней зарплаты по указанной должности;" +
                             "\n /findEmpByPhone <номер телефона> - вывод в консоль средней зарплаты по указанной должности;" +
-                            "\n /deleteTable <имя таблицы> - удаление таблицы по имени. При вызове без имени таблицы удалит обе таблицы задания;" +
+                            "\n /deleteTable <имя таблицы> - удаление данных таблицы по имени таблицы. При вызове без имени таблицы удалит данные из обеих таблиц задания;" +
                             "\n /help - вывод в консоль списка команд;" +
                             "\n /exit - завершение работы.");
                 }
